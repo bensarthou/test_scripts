@@ -95,7 +95,7 @@ if CONDAT is False:
             linear_op = pyWavelet3(wavelet_name="bior6.8",
                                    nb_scale=3)
         else:
-            linear_op = Wavelet2(nb_scale=3, wavelet_name='ATrou3D')
+            linear_op = Wavelet2(nb_scale=3, wavelet_name='Mallat3DWaveletTransform79Filters')
 
         fourier_op = NFFT3(samples=kspace_loc, shape=Iref.shape)
         gradient_op = Grad_pMRI(data=kspace_data,
@@ -176,6 +176,6 @@ print('METRICS')
 print(tab_metrics)
 
 
-np.save('/volatile/temp_bs/save_wavelet3_'
+np.save('/volatile/temp_bs/save_wavelet3_mallat_'
         + str(c)+'_'+str(r)+'_'+str(p)+'_'+str(m) +
         '.npy', {'time': tab_time, 'metrics': tab_metrics, 'cost': list_cost})

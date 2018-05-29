@@ -52,12 +52,12 @@ else:
 max_iter = m  # Nb max of iterations in reconstruction
 
 # Load input data
-filename = '/volatile/bsarthou/meas_MID14_gre_800um_iso_128x128x128_FID24.mat'
+filename = '/volatile/temp_bs/meas_MID14_gre_800um_iso_128x128x128_FID24.mat'
 Iref = loadmat(filename)['ref']
 
 # imshow3D(Iref, display=True)
 
-samples = loadmat('/volatile/bsarthou/'
+samples = loadmat('/volatile/temp_bs/'
                   'samples_sparkling_3D_N128_502x1536x8_FID4971.mat')['samples']
 
 samples = normalize_samples(samples)
@@ -84,6 +84,7 @@ imshow3D(np.abs(image_rec0), display=False)
 
 tab_time = np.zeros((1, nb_runs))
 tab_metrics = np.zeros((4, nb_runs))
+list_cost = []
 
 if CONDAT is False:
 
@@ -120,6 +121,8 @@ if CONDAT is False:
         tab_metrics[2, run] = psnr(np.abs(Iref), np.abs(x_final), mask=None)
         tab_metrics[3, run] = nrmse(np.abs(Iref), np.abs(x_final), mask=None)
 
+        list_cost.append(cost)
+
 else:
 
     for run in range(nb_runs):
@@ -135,7 +138,7 @@ else:
 
         gradient_op_cd = Grad_pMRI(data=kspace_data,
                                    fourier_op=fourier_op)
-        x_final, transform = sparse_rec_condatvu(
+        x_final, transformn, cost = sparse_rec_condatvu(
             gradient_op=gradient_op_cd,
             linear_op=linear_op,
             std_est=None,
@@ -149,13 +152,13 @@ else:
             max_nb_of_iter=max_iter,
             add_positivity=False,
             atol=1e-4,
-            verbose=1)
+            verbose=1,
+            get_cost=True)
         end = time.clock()
-        # A = np.abs(Iref)
-        # A = (A - A.min())/(A.max()-A.min())
-        # B = np.abs(x_final)
-        # B = (B - B.min())/(B.max()-B.min())
-        # imshow3D(np.abs(A - B), display=True)
+
+        # plt.figure()
+        # plt.plot(cost)
+        # plt.show()
 
         tab_time[0, run] = end - start
 
@@ -164,12 +167,15 @@ else:
         tab_metrics[2, run] = psnr(np.abs(Iref), np.abs(x_final), mask=None)
         tab_metrics[3, run] = nrmse(np.abs(Iref), np.abs(x_final), mask=None)
 
+        list_cost.append(cost)
+
+
 print('TIME')
 print(tab_time)
 print('METRICS')
 print(tab_metrics)
 
 
-np.save('/volatile/bsarthou/datas/save_wavelet3_'
+np.save('/volatile/temp_bs/save_wavelet3_'
         + str(c)+'_'+str(r)+'_'+str(p)+'_'+str(m) +
-        '.npy', np.array([tab_time, tab_metrics]))
+        '.npy', {'time': tab_time, 'metrics': tab_metrics, 'cost': list_cost})

@@ -140,10 +140,13 @@ else:
             linear_op = pyWavelet3(wavelet_name=pwt_name,
                                    nb_scale=3)
         else:
+            # import ipdb; ipdb.set_trace()
+            kwargs = dict()
+            kwargs["type_of_filters"] = isap_filter_id
             linear_op = Wavelet2(
                         nb_scale=3,
                         wavelet_name=sparse3d_name,
-                        type_of_filters=isap_filter_id)
+                        **kwargs)
 
         fourier_op = NFFT3(samples=kspace_loc, shape=Iref.shape)
 

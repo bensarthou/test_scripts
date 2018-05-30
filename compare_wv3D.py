@@ -7,8 +7,9 @@ dirpath = '/volatile/bsarthou/datas/'
 
 dct = {}
 
-dct['pwt'] = np.load(dirpath+'save_wavelet3_1_5_1_200.npy').item()
-dct['sparse3d'] = np.load(dirpath+'save_wavelet3_1_5_0_200.npy').item()
+dct['pwt'] = np.load(dirpath+'save_wavelet3_bior6.8_1_5_1_200.npy').item()
+dct['sparse3d'] = np.load(dirpath +
+                          'save_wavelet3_Mallat79_1_5_0_200.npy').item()
 
 print('TIME PERFS')
 
@@ -44,13 +45,13 @@ cost2 = list(dct['sparse3d']['cost'][0])
 min_size = min(len(cost1), len(cost2))
 
 plt.figure()
-plt.suptitle('Bior6 Pywavelet vs. Sparse3D ATrou3D\n')
+plt.suptitle('CONDAT: Pywavelet Bior6.8 vs. Sparse3D Mallat79\n')
 plt.subplot(2, 1, 1)
 plt.title('time (in s): {:.1f}/{:.1f}/{:.1f}'.format(time_pwt, time_s3d,
 
                                                      time_pwt - time_s3d))
-plt.plot(cost1, 'r.')
-plt.plot(cost2, 'b.')
+plt.plot(cost1, 'r')
+plt.plot(cost2, 'b')
 plt.subplot(2, 1, 2)
 plt.title('SSIM:SNR:PSNR:NRMSE = ({:.3f}/{:.3f}/{:.3E}),({:.3f}/{:.3f}/{:.3E})'
           ',({:.3f}/{:.3f}/{:.3E}),'

@@ -51,6 +51,11 @@ else:
     PWT = False
 max_iter = m  # Nb max of iterations in reconstruction
 
+pwt_name = 'db4'
+sparse3d_name = 'BiOrthogonalTransform3D'
+isap_filter_id = 2
+sp3d_title = 'daubechies4'
+
 # Load input data
 filename = '/volatile/temp_bs/meas_MID14_gre_800um_iso_128x128x128_FID24.mat'
 Iref = loadmat(filename)['ref']
@@ -92,10 +97,13 @@ if CONDAT is False:
         start = time.clock()
 
         if PWT:
-            linear_op = pyWavelet3(wavelet_name="bior6.8",
+            linear_op = pyWavelet3(wavelet_name=pwt_name,
                                    nb_scale=3)
         else:
-            linear_op = Wavelet2(nb_scale=3, wavelet_name='Mallat3DWaveletTransform79Filters')
+            linear_op = Wavelet2(
+                        nb_scale=3,
+                        wavelet_name=sparse3d_name,
+                        isap_filter=isap_filter_id)
 
         fourier_op = NFFT3(samples=kspace_loc, shape=Iref.shape)
         gradient_op = Grad_pMRI(data=kspace_data,
@@ -129,10 +137,13 @@ else:
         start = time.clock()
 
         if PWT:
-            linear_op = pyWavelet3(wavelet_name="bior6.8",
+            linear_op = pyWavelet3(wavelet_name=pwt_name,
                                    nb_scale=3)
         else:
-            linear_op = Wavelet2(nb_scale=3, wavelet_name='ATrou3D')
+            linear_op = Wavelet2(
+                        nb_scale=3,
+                        wavelet_name=sparse3d_name,
+                        type_of_filters=isap_filter_id)
 
         fourier_op = NFFT3(samples=kspace_loc, shape=Iref.shape)
 
@@ -176,6 +187,7 @@ print('METRICS')
 print(tab_metrics)
 
 
-np.save('/volatile/temp_bs/save_wavelet3_mallat_'
+wt_name = pwt_name if PWT else sparse3d_name
+np.save('/volatile/temp_bs/save_wavelet3_' + wt_name + '_'
         + str(c)+'_'+str(r)+'_'+str(p)+'_'+str(m) +
         '.npy', {'time': tab_time, 'metrics': tab_metrics, 'cost': list_cost})

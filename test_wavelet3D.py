@@ -51,10 +51,10 @@ else:
     PWT = False
 max_iter = m  # Nb max of iterations in reconstruction
 
-pwt_name = 'db4'
+pwt_name = 'bior3.3'
 sparse3d_name = 'BiOrthogonalTransform3D'
-isap_filter_id = 2
-sp3d_title = 'daubechies4'
+isap_filter_id = 13
+sp3d_title = 'BiOr44'
 
 # Load input data
 filename = '/volatile/temp_bs/meas_MID14_gre_800um_iso_128x128x128_FID24.mat'
@@ -143,6 +143,7 @@ else:
             # import ipdb; ipdb.set_trace()
             kwargs = dict()
             kwargs["type_of_filters"] = isap_filter_id
+            # kwargs["nb_procs"] = 6
             linear_op = Wavelet2(
                         nb_scale=3,
                         wavelet_name=sparse3d_name,
@@ -190,7 +191,7 @@ print('METRICS')
 print(tab_metrics)
 
 
-wt_name = pwt_name if PWT else sparse3d_name
+wt_name = pwt_name if PWT else sp3d_title
 np.save('/volatile/temp_bs/save_wavelet3_' + wt_name + '_'
         + str(c)+'_'+str(r)+'_'+str(p)+'_'+str(m) +
         '.npy', {'time': tab_time, 'metrics': tab_metrics, 'cost': list_cost})

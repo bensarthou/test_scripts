@@ -1,0 +1,19 @@
+LB-CSMRI v1.0
+Copyright (C) 2018 Laboratory for Information and Inference Systems (LIONS)
+		    École Polytechnique Fédérale de Lausanne, Switzerland.
+
+LB-CSMRI is a MATLAB software package for optimizing the k-space masks for a given training data and reconstruction method.
+
+LB-CSMRI is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, version 3 of the License.
+
+LB-CSMRI is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+[1] B. Gözcü, R. K. Mahabadi, Y. H. Li, E. Ilıcak,  T. Çukur, J. Scarlett, and V. Cevher. Learning-Based Compressive MRI. IEEE transactions on medical imaging (2018)

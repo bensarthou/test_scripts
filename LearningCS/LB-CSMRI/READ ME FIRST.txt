@@ -1,0 +1,10 @@
+Please download NESTA [1] solver from 
+
+https://statweb.stanford.edu/~candes/nesta/.
+
+in order to run be able to run the main script. It's possible to implement/call your reconstruction algorithm of preference in the function reconstruction_algorithms.m.
+
+You can also use your own data as the training data and optimize the k-space for this data.
+
+ 
+Becker, S., Bobin, J., & Candès, E. J. (2011). NESTA: A fast and accurate first-order method for sparse recovery. SIAM Journal on Imaging Sciences, 4(1), 1-39.

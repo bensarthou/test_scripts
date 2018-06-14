@@ -24,13 +24,22 @@ def load_results(path):
 
 print('LOADING DATA')
 directory = '/volatile/bsarthou/datas/sparkling/stat_sparkling_'
-path_res = ['1e-08_201869_031.npy', '1e-07_201869_30.npy',
-            '1e-06_201869_1115.npy', '1e-05_201869_1936.npy',
-            '0.0001_2018610_417.npy', '0.1_2018613_950.npy',
-            '0.0_2018613_135.npy']
+#
+# path_res = ['1e-08_201869_031.npy', '1e-07_201869_30.npy',
+#             '1e-06_201869_1115.npy', '1e-05_201869_1936.npy',
+#             '0.0001_2018610_417.npy', '0.1_2018613_950.npy',
+#             '0.0_2018613_135.npy', '10.0_2018614_142.npy',
+#             '100.0_2018614_1015.npy']
+
+# path_res = ['0.0_2018613_135.npy']
+path_res = ['0.0001_2018610_417.npy', '0.1_2018613_950.npy',
+            '0.0_2018613_135.npy', '10.0_2018614_142.npy',
+            '100.0_2018614_1015.npy']
+
 titles = [float(p.split('_')[0]) for p in path_res]
 # WARNING must be same size as path_res
-colormap = ['magma', 'seismic', 'rainbow', 'gray', 'plasma', 'magma', 'plasma']
+colormap = ['magma', 'seismic', 'rainbow', 'gray', 'plasma', 'magma', 'plasma',
+            'seismic', 'rainbow']
 list_metric_names = ['snr', 'psnr', 'ssim', 'nrmse']
 
 taus, decays, metricss = [], [], []
@@ -52,7 +61,12 @@ for j in range(len(metricss[0])):
     axJ.set_xlabel('tau')
     axJ.set_ylabel('decay')
     for i in range(len(path_res)):
-        axJ.plot_trisurf(taus[i], decays[i], metricss[i][j], cmap=colormap[i])
+        surf = axJ.plot_trisurf(taus[i], decays[i], metricss[i][j],
+                                cmap=colormap[i],
+                                label='lambda {}'.format(titles[i]))
+        surf._facecolors2d = surf._facecolors3d
+        surf._edgecolors2d = surf._edgecolors3d
+    axJ.legend()
 # plt.show()
 
 print('Differences of metrics')
@@ -114,8 +128,8 @@ for i in range(nb_parameters):
 # plt.show()
 
 print('MEAN DIFFERENCE METRIC')
-mean_metric = np.asarray([[np.mean(np.asarray(metricss[i][id_metrics]) -
-                                   np.asarray(metricss[j][id_metrics]))
+mean_metric = np.asarray([[np.abs(np.mean(np.asarray(metricss[i][id_metrics]) -
+                                          np.asarray(metricss[j][id_metrics])))
                            for j in range(nb_parameters)]
                           for i in range(nb_parameters)])
 
@@ -126,7 +140,7 @@ ax = fig3.add_subplot(111, projection='3d')
 ax.set_xlabel('lambda')
 ax.set_ylabel('lambda')
 new_titles = [(np.log10(k) if k != 0 else 0.0) for k in titles]
-X, Y = np.meshgrid(new_titles, new_titles[::-1])
+X, Y = np.meshgrid(new_titles, new_titles)
 ax.plot_wireframe(X, Y, mean_metric)
 
 # ax.plot_trisurf(titles, titles,
@@ -134,3 +148,5 @@ ax.plot_wireframe(X, Y, mean_metric)
 #                 cmap='magma')
 
 plt.show()
+
+print('IMAGES')

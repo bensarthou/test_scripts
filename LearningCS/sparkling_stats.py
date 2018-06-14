@@ -64,23 +64,23 @@ X_train = X_train[:40, :, :]
 
 mu = float(sys.argv[1])
 
-g = recons_pysap
-kwargs = {'wavelet_name': "BsplineWaveletTransformATrousAlgorithm",
-          'nb_scales': 4,
-          'std_est': None,
-          'std_est_method': None,
-          'std_thr': 2.,
-          'mu': mu,
-          'tau': None,
-          'sigma': None,
-          'relaxation_factor': 1.0,
-          'nb_of_reweights': 2,
-          'max_nb_of_iter': 100,
-          'add_positivity': False,
-          'atol': 1e-4,
-          'non_cartesian': True,
-          'uniform_data_shape': shape_img,
-          'verbose': 0}
+# g = recons_pysap
+# kwargs = {'wavelet_name': "UndecimatedBiOrthogonalTransform",
+#           'nb_scales': 4,
+#           'std_est': None,
+#           'std_est_method': None,
+#           'std_thr': 2.,
+#           'mu': mu,
+#           'tau': None,
+#           'sigma': None,
+#           'relaxation_factor': 1.0,
+#           'nb_of_reweights': 2,
+#           'max_nb_of_iter': 100,
+#           'add_positivity': False,
+#           'atol': 1e-4,
+#           'non_cartesian': True,
+#           'uniform_data_shape': shape_img,
+#           'verbose': 0}
 
 g = recons_pysap_3D
 kwargs = {'std_est': None,

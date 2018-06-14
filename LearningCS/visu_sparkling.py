@@ -8,18 +8,37 @@ def log_tick_formatter(val, pos=None):
     return "{:.2e}".format(10**val)
 
 
-def load_results(path):
+def load_results(path, image=False, id_metric=2):
     list_dic = np.load(path)
     list_tau, list_decay = [], []
     res_metrics = [[] for i in range(len(list_metric_names))]
 
     # Load metrics for each set of sparkling parameters
+    best_image = {'dic': {}, 'id_metric': id_metric, 'best_metric': 0.0,
+                  'tau': 0.0, 'decay': 0.0}
+
     for dico in list_dic:
         list_tau.append(dico['tau'])
         list_decay.append(dico['decay'])
+
+        # Check for the best reconstructed image in the list of dicts,
+        # and its associated params.
+        if (image and (dico['mean_'+list_metric_names[id_metric]] >
+                       best_image['best_metric'])):
+
+            best_image['best_metric'] = dico['mean_' +
+                                             list_metric_names[id_metric]]
+            best_image['tau'] = dico['tau']
+            best_image['decay'] = dico['decay']
+            best_image['data'] = dico['img_recons']
+
         for j in range(len(list_metric_names)):
             res_metrics[j].append(dico['mean_'+list_metric_names[j]])
-    return list_tau, list_decay, res_metrics
+
+    if not image:
+        return list_tau, list_decay, res_metrics
+    else:
+        return list_tau, list_decay, res_metrics, best_image
 
 
 print('LOADING DATA')
@@ -40,6 +59,7 @@ titles = [float(p.split('_')[0]) for p in path_res]
 # WARNING must be same size as path_res
 colormap = ['magma', 'seismic', 'rainbow', 'gray', 'plasma', 'magma', 'plasma',
             'seismic', 'rainbow']
+colormap2 = ['k', 'b', 'r', 'g', 'y', 'm', 'k', 'b', 'r']
 list_metric_names = ['snr', 'psnr', 'ssim', 'nrmse']
 
 taus, decays, metricss = [], [], []
@@ -62,11 +82,14 @@ for j in range(len(metricss[0])):
     axJ.set_ylabel('decay')
     for i in range(len(path_res)):
         surf = axJ.plot_trisurf(taus[i], decays[i], metricss[i][j],
-                                cmap=colormap[i],
+                                color=colormap2[i],
                                 label='lambda {}'.format(titles[i]))
         surf._facecolors2d = surf._facecolors3d
         surf._edgecolors2d = surf._edgecolors3d
-    axJ.legend()
+    leg = axJ.legend()
+    LH = leg.legendHandles
+    LH[i].set_color(colormap2[i])
+
 # plt.show()
 
 print('Differences of metrics')
@@ -147,6 +170,30 @@ ax.plot_wireframe(X, Y, mean_metric)
 #                 mean_metric.flatten(),
 #                 cmap='magma')
 
-plt.show()
+# plt.show()
 
 print('IMAGES')
+# Idea: For each lambda, find best tau, decay for a metric and plot the
+# reconstructed image
+
+best_images = []
+for i in range(len(path_res)):
+    r1, r2, r3, best_image = load_results(directory + path_res[i], image=True)
+    best_images.append(best_image)
+    print('{} out of {} loaded'.format(i+1, len(path_res)), end="\r")
+
+fig4 = plt.figure()
+fig4.suptitle('Best reconstructed image for several lambdas')
+
+for i in range(len(path_res)):
+    best_image = best_images[i]
+    axI = fig4.add_subplot(len(path_res), 1, i+1)
+    axI.imshow(np.abs(best_image['data']), cmap='gray')
+    # axI.title('Lambda: {} for (tau, decay): ({},{}). {}={}'.format(
+    #             titles[i],
+    #             best_image['tau'],
+    #             best_image['decay'],
+    #             list_metric_names[best_image['id_metric']],
+    #             best_image['best_metric']))
+
+plt.show()

@@ -120,8 +120,8 @@ list_res = []
 decays = [1, 1.75, 2.5, 3.25, 4]
 taus = [0.5, 0.7, 0.9, 1, 1.2]
 
-# decays = [1]
-# taus = [0.5]
+# decays = [1.75, 2.5]
+# taus = [0.7, 0.9]
 
 cnt = 0
 for decay in decays:
@@ -145,7 +145,7 @@ for decay in decays:
         mask = mask/(2*np.abs(mask).max())
 
         # means of metrics
-        gamma_temp = np.array([0, 0, 0, 0])
+        gamma_temp = [[], [], [], []]
 
         for j in range(X_train.shape[0]):
             image = X_train[j]
@@ -157,8 +157,9 @@ for decay in decays:
 
             print('ID img, decay, tau, recons metric: ({}, {}, {},'
                   '{})\n'.format(j, decay, tau, m))
-
-            gamma_temp = gamma_temp + m
+            # gamma_temp = gamma_temp + m
+            for i in range(len(m)):
+                gamma_temp[i].append(m[i])
 
             cnt += 1
             print('PROGRESSION: {:4f}%\n'.format(
@@ -166,14 +167,32 @@ for decay in decays:
                                 (len(decays)*len(taus)*X_train.shape[0])))
 
         # Save metrics and data of the reconstructions
-        res_dict['mean_snr'] = gamma_temp[0]/X_train.shape[0]
-        res_dict['mean_psnr'] = gamma_temp[1]/X_train.shape[0]
-        res_dict['mean_ssim'] = gamma_temp[2]/X_train.shape[0]
-        res_dict['mean_nrmse'] = gamma_temp[3]/X_train.shape[0]
+        res_dict['mean_snr'] = np.mean(gamma_temp[0])
+        res_dict['mean_psnr'] = np.mean(gamma_temp[1])
+        res_dict['mean_ssim'] = np.mean(gamma_temp[2])
+        res_dict['mean_nrmse'] = np.mean(gamma_temp[3])
+
+        res_dict['std_snr'] = np.std(gamma_temp[0])
+        res_dict['std_psnr'] = np.std(gamma_temp[1])
+        res_dict['std_ssim'] = np.std(gamma_temp[2])
+        res_dict['std_nrmse'] = np.std(gamma_temp[3])
+
+        res_dict['min_snr'] = np.min(gamma_temp[0])
+        res_dict['min_psnr'] = np.min(gamma_temp[1])
+        res_dict['min_ssim'] = np.min(gamma_temp[2])
+        res_dict['min_nrmse'] = np.min(gamma_temp[3])
+
+        res_dict['max_snr'] = np.max(gamma_temp[0])
+        res_dict['max_psnr'] = np.max(gamma_temp[1])
+        res_dict['max_ssim'] = np.max(gamma_temp[2])
+        res_dict['max_nrmse'] = np.max(gamma_temp[3])
 
         res_dict['img_orig'] = np.copy(image)
         res_dict['img_recons'] = np.copy(img_recons)
         res_dict['cost'] = np.copy(cost)
+
+        res_dict['nb_decays'] = len(decays)
+        res_dict['nb_taus'] = len(taus)
 
         list_res.append(res_dict)
 

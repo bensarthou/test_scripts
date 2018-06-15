@@ -10,5 +10,10 @@
 # python3 sparkling_stats.py 1e-01
 
 
-python3 sparkling_stats.py 10
+# python3 sparkling_stats.py 200
+# python3 sparkling_stats.py 300
+# python3 sparkling_stats.py 1000
+
 python3 sparkling_stats.py 100
+python3 sparkling_stats.py 150
+python3 sparkling_stats.py 200

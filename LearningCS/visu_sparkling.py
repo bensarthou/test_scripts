@@ -2,14 +2,19 @@ import matplotlib.pyplot as plt
 import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.ticker as mticker
+import datetime
 
-ABSOLUTE_METRIC_DIFF = True
-RELATIVE_METRIC_DIFF = True
-MEAN_DIFF_METRIC = True
-IMAGES = True
+ABSOLUTE_METRIC_DIFF = False
+RELATIVE_METRIC_DIFF = False
+MEAN_DIFF_METRIC = False
+IMAGES = False
 T_D_FIXED_FOR_L = True
 
 id_metrics = 2  # SSIM
+# id_metrics = 0  # SNR
+
+nb_decay, nb_tau = 5, 5  # TODO: Remove those hardcoded values
+nb_samples = 40
 
 
 def log_tick_formatter(val, pos=None):
@@ -82,38 +87,98 @@ directory = '/volatile/bsarthou/datas/sparkling/stat_sparkling_'
 #             '0.0_2018613_135.npy', '10.0_2018614_142.npy',
 #             '100.0_2018614_1015.npy']
 
-# path_res = ['0.0_2018613_135.npy', '0.0_2018615_1034.npy']
 # path_res = ['0.0001_2018610_417.npy', '0.1_2018613_950.npy',
 #             '0.0_2018613_135.npy', '10.0_2018614_142.npy',
 #             '100.0_2018614_1015.npy']
-# path_res = ['100.0_2018614_1015.npy', '200.0_2018615_1223.npy',
-#             '300.0_2018615_1225.npy',
-#             '1000.0_2018615_1227.npy']
+#
+# # One test
+# path_res = ['100.0_2018615_1423.npy']
 
-path_res = ['100.0_2018615_1423.npy']
+# # From 100 to 2000
+# path_res = ['100.0_2018616_154.npy',
+#             '200.0_2018616_945.npy',
+#             '250.0_2018616_1655.npy',
+#             '300.0_2018616_2344.npy',
+#             '500.0_2018617_69.npy',
+#             '1000.0_2018617_1336.npy',
+#             '2000.0_2018617_2154.npy']
+#
+# # Best lambdas, only 3
+# path_res = ['100.0_2018616_154.npy',
+#             '200.0_2018616_945.npy',
+#             '250.0_2018616_1655.npy']
+#
+# # All available
+path_res = ['1e-08_201869_031.npy',
+            '1e-07_201869_30.npy',
+            '1e-06_201869_1115.npy',
+            '1e-05_201869_1936.npy',
+            '0.0001_2018610_417.npy',
+            '0.1_2018613_950.npy',
+            '0.0_2018613_135.npy',
+            '10.0_2018614_142.npy',
+            '100.0_2018616_154.npy',
+            '200.0_2018616_945.npy',
+            '250.0_2018616_1655.npy',
+            '300.0_2018616_2344.npy',
+            '500.0_2018617_69.npy',
+            '1000.0_2018617_1336.npy',
+            '2000.0_2018617_2154.npy']
+
+# # Example for slides
+# path_res = ['1e-08_201869_031.npy',
+#             '0.0_2018613_135.npy',
+#             '100.0_2018616_154.npy',
+#             '1000.0_2018617_1336.npy']
+
+
+nb_lambdas = len(path_res)
 
 titles = [float(p.split('_')[0]) for p in path_res]
 # WARNING must be same size as path_res
-colormap = ['magma', 'seismic', 'rainbow', 'gray', 'plasma', 'magma', 'plasma',
-            'seismic', 'rainbow']
-colormap2 = ['k', 'b', 'r', 'g', 'y', 'm', 'k', 'b', 'r']
+colormap = ['magma', 'seismic', 'rainbow', 'gray', 'plasma']
+colormap2 = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
 list_metric_names = ['snr', 'psnr', 'ssim', 'nrmse']
 
 taus, decays = [], []
 metricss_mean, metricss_std, metricss_min, metricss_max = [], [], [], []
 
-for i in range(len(path_res)):
+reg_table = np.zeros((nb_lambdas*nb_decay*nb_tau, 4))
+
+for i in range(nb_lambdas):
     tau, decay, metrics = load_results(directory + path_res[i])
     taus.append(tau)
     decays.append(decay)
     metricss_mean.append(metrics[0])
+
+    temp_table = np.zeros((nb_decay*nb_tau, 4))
+    temp_table[:, 0] = titles[i]*np.ones((nb_decay*nb_tau,))
+    temp_table[:, 1] = tau
+    temp_table[:, 2] = decay
+    temp_table[:, 3] = metrics[0][id_metrics]
+
+    reg_table[((nb_tau*nb_decay)*i):((nb_tau*nb_decay)*(i+1)), :] = temp_table
+
     if(len(metrics) == 4):
         metricss_std.append(metrics[1])
         metricss_min.append(metrics[2])
         metricss_max.append(metrics[3])
+    else:
+        metricss_std.append([[0 for x in metrics[0][j]]
+                             for j in range(len(metrics[0]))])
+        metricss_min.append(metrics[0])
+        metricss_max.append(metrics[0])
 
-    print('{} out of {} loaded'.format(i+1, len(path_res)), end="\r")
+    print('{} out of {} loaded'.format(i+1, nb_lambdas), end="\r")
 
+date = datetime.datetime.now()
+namefile = 'Reg_FLASH3D_{}{}{}_{}{}.npy'.format(date.year,
+                                                date.month,
+                                                date.day,  date.hour,
+                                                date.minute)
+
+np.save(directory+namefile, reg_table)
+# print(reg_table)
 print('\n DATA LOADED')
 # print(titles)
 # print(len(taus))
@@ -138,15 +203,15 @@ for j in range(len(metricss_mean[0])):
     axJ.set_title(list_metric_names[j])
     axJ.set_xlabel('tau')
     axJ.set_ylabel('decay')
-    for i in range(len(path_res)):
+    for i in range(nb_lambdas):
         surf = axJ.plot_trisurf(taus[i], decays[i], metricss_mean[i][j],
-                                color=colormap2[i],
+                                color=colormap2[i % (len(colormap2))],
                                 label='lambda {}'.format(titles[i]))
         surf._facecolors2d = surf._facecolors3d
         surf._edgecolors2d = surf._edgecolors3d
     leg = axJ.legend()
     LH = leg.legendHandles
-    LH[i].set_color(colormap2[i])
+    LH[i].set_color(colormap2[i % (len(colormap2))])
 
 # plt.show()
 
@@ -189,7 +254,7 @@ if ABSOLUTE_METRIC_DIFF:
             axJ.plot_trisurf(taus[i], decays[i],
                              np.asarray(metricss_mean[i][id_metrics]) -
                              np.asarray(metricss_mean[j][id_metrics]),
-                             cmap=colormap[i])
+                             cmap=colormap[i % (len(colormap))])
             old_axJ = axJ
 
 if RELATIVE_METRIC_DIFF:
@@ -229,8 +294,10 @@ if RELATIVE_METRIC_DIFF:
 # point(i,j) represent the absolute difference between mean(SSIM(tau, decay))
 # of lambda_i and lambda_j. The graph is obviously symetric
 
-mean_metric = np.asarray([[np.abs(np.mean(np.asarray(metricss_mean[i][id_metrics]) -
-                                          np.asarray(metricss_mean[j][id_metrics])))
+mean_metric = np.asarray([[np.abs(np.mean(np.asarray(
+                                    metricss_mean[i][id_metrics]) -
+                                          np.asarray(
+                                    metricss_mean[j][id_metrics])))
                            for j in range(nb_parameters)]
                           for i in range(nb_parameters)])
 if MEAN_DIFF_METRIC:
@@ -256,18 +323,18 @@ if MEAN_DIFF_METRIC:
 if IMAGES:
     print('IMAGES CHECK')
     best_images = []
-    for i in range(len(path_res)):
+    for i in range(nb_lambdas):
         r1, r2, r3, best_image = load_results(directory + path_res[i],
                                               image=True)
         best_images.append(best_image)
-        print('{} out of {} loaded'.format(i+1, len(path_res)), end="\r")
+        print('{} out of {} loaded'.format(i+1, nb_lambdas), end="\r")
 
     fig4 = plt.figure()
     fig4.suptitle('Best reconstructed image for several lambdas')
 
-    for i in range(len(path_res)):
+    for i in range(nb_lambdas):
         best_image = best_images[i]
-        axI = fig4.add_subplot(np.ceil(len(path_res)/2.), 2, i+1)
+        axI = fig4.add_subplot(np.ceil(nb_lambdas/2.), 2, i+1)
         axI.imshow(np.abs(best_image['data']), cmap='gray')
         axI.set_title('Lambda: {} for (tau, decay): ({},{}). {}={}'.format(
                     titles[i],
@@ -293,26 +360,23 @@ if T_D_FIXED_FOR_L:
     id_fixed_tau = 1
     id_fixed_decay = 1
 
-    nb_decay, nb_tau = 5, 5  # TODO: Remove those hardcoded values
-    nb_samples = 40
-
     ax_tau.set_title('{} along decay,'
                      ' tau fixed at {}'.format(list_metric_names[id_metrics],
                                                taus[0][id_fixed_tau]))
 
     ax_decay.set_title('{} along tau,'
                        ' decay fixed at {}'.format(list_metric_names[
-                        id_metrics], decays[0][len(path_res)*id_fixed_decay]))
+                        id_metrics], decays[0][nb_lambdas*id_fixed_decay]))
 
-    for i in range(len(path_res)):
+    for i in range(nb_lambdas):
         tab_metrics_mean = np.asarray(
             metricss_mean[i][id_metrics]).reshape((nb_decay, nb_tau))
 
         ax_tau.plot(decays[i][::nb_tau], tab_metrics_mean[:, id_fixed_tau],
-                    color=colormap2[i], label=titles[i])
+                    color=colormap2[i % (len(colormap2))], label=titles[i])
 
         ax_decay.plot(taus[i][:nb_decay], tab_metrics_mean[id_fixed_decay, :],
-                      color=colormap2[i], label=titles[i])
+                      color=colormap2[i % (len(colormap2))], label=titles[i])
 
         if (metricss_std != []):
             tab_metrics_std = np.asarray(
@@ -324,16 +388,49 @@ if T_D_FIXED_FOR_L:
 
             ax_tau.plot(decays[i][::nb_tau],
                         tab_metrics_mean[:, id_fixed_tau]
-                        - tab_metrics_std[:, id_fixed_tau]/40,
-                        color=colormap2[i], label=titles[i], marker='.')
+                        - tab_metrics_std[:, id_fixed_tau]/np.sqrt(nb_samples),
+                        color=colormap2[i % (len(colormap2))],
+                        label=str(titles[i])+' std-',
+                        linestyle='--')
             ax_tau.plot(decays[i][::nb_tau],
                         tab_metrics_mean[:, id_fixed_tau]
-                        + tab_metrics_std[:, id_fixed_tau]/40,
-                        color=colormap2[i], label=titles[i], marker='.')
+                        + tab_metrics_std[:, id_fixed_tau]/np.sqrt(nb_samples),
+                        color=colormap2[i % (len(colormap2))],
+                        label=str(titles[i])+' std+',
+                        linestyle='--')
             ax_tau.plot(decays[i][::nb_tau], tab_metrics_min[:, id_fixed_tau],
-                        color=colormap2[i], label=titles[i], marker='*')
+                        color=colormap2[i % (len(colormap2))],
+                        label=str(titles[i])+' min',
+                        linestyle=':')
             ax_tau.plot(decays[i][::nb_tau], tab_metrics_max[:, id_fixed_tau],
-                        color=colormap2[i], label=titles[i], marker='*')
+                        color=colormap2[i % (len(colormap2))],
+                        label=str(titles[i])+' max',
+                        linestyle=':')
+
+            ax_decay.plot(taus[i][:nb_decay],
+                          tab_metrics_mean[id_fixed_decay, :]
+                          - tab_metrics_std[id_fixed_decay,
+                                            :]/np.sqrt(nb_samples),
+                          color=colormap2[i % (len(colormap2))],
+                          label=str(titles[i])+' std-',
+                          linestyle='--')
+            ax_decay.plot(taus[i][:nb_decay],
+                          tab_metrics_mean[id_fixed_decay, :]
+                          + tab_metrics_std[id_fixed_decay,
+                                            :]/np.sqrt(nb_samples),
+                          color=colormap2[i % (len(colormap2))],
+                          label=str(titles[i])+' std+',
+                          linestyle='--')
+            ax_decay.plot(taus[i][:nb_decay],
+                          tab_metrics_min[id_fixed_decay, :],
+                          color=colormap2[i % (len(colormap2))],
+                          label=str(titles[i])+' min',
+                          linestyle=':')
+            ax_decay.plot(taus[i][:nb_decay],
+                          tab_metrics_max[id_fixed_decay, :],
+                          color=colormap2[i % (len(colormap2))],
+                          label=str(titles[i])+' max',
+                          linestyle=':')
 
     ax_tau.legend()
     ax_decay.legend()
@@ -350,39 +447,5 @@ if T_D_FIXED_FOR_L:
 # For each lambda, plota metric along tau or decay, with decay or tau
 # associated fixed (it's a 2D projection of the surfaces seen before)
 # if L_FIXED_FOR_T_D:
-#     print('TAU DECAY FIXED FOR LAMBDA')
-    # fig5 = plt.figure()
-    # fig5.suptitle('tau, decay, lambda fixed')
-    #
-    # ax_tau = fig5.add_subplot(1, 2, 1)
-    # ax_decay = fig5.add_subplot(1, 2, 2, sharey=ax_tau)
-    #
-    # id_fixed_tau = 1
-    # id_fixed_decay = 2
-    #
-    # nb_decay, nb_tau = 5, 5  # TODO: Remove those hardcoded values
-    #
-    # ax_tau.set_title('{} along decay,'
-    #                  ' tau fixed at {}'.format(list_metric_names[id_metrics],
-    #                                            taus[0][id_fixed_tau]))
-    #
-    # ax_decay.set_title('{} along tau,'
-    #                    ' decay fixed at {}'.format(list_metric_names[
-    #                     id_metrics], decays[0][len(path_res)*id_fixed_decay]))
-    #
-    # for i in range(len(path_res)):
-    #     tab_metrics = np.asarray(
-    #         metricss_mean[i][id_metrics]).reshape((nb_decay, nb_tau))
-    #     ax_tau.plot(decays[i][::nb_tau], tab_metrics[:, id_fixed_tau],
-    #                 color=colormap2[i], label=titles[i])
-    #     ax_decay.plot(taus[i][:nb_decay], tab_metrics[id_fixed_decay, :],
-    #                   color=colormap2[i], label=titles[i])
-    #
-    # ax_tau.legend()
-    # ax_decay.legend()
-    # ax_tau.set_xlabel('decay')
-    # ax_tau.set_ylabel(list_metric_names[id_metrics])
-    # ax_decay.set_xlabel('tau')
-    # ax_decay.set_ylabel(list_metric_names[id_metrics])
 
 plt.show()

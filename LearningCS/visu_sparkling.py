@@ -3,6 +3,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 import matplotlib.ticker as mticker
 import datetime
+from utils import *
 
 ABSOLUTE_METRIC_DIFF = False
 RELATIVE_METRIC_DIFF = False
@@ -15,60 +16,6 @@ id_metrics = 2  # SSIM
 
 nb_decay, nb_tau = 5, 5  # TODO: Remove those hardcoded values
 nb_samples = 40
-
-
-def log_tick_formatter(val, pos=None):
-    return "{:.2e}".format(10**val)
-
-
-def load_results(path, image=False, id_metric=2):
-    list_dic = np.load(path)
-    list_tau, list_decay = [], []
-    res_metrics = [[] for i in range(len(list_metric_names))]
-    std_metrics = [[] for i in range(len(list_metric_names))]
-    min_metrics = [[] for i in range(len(list_metric_names))]
-    max_metrics = [[] for i in range(len(list_metric_names))]
-
-    # Load metrics for each set of sparkling parameters
-    best_image = {'dic': {}, 'id_metric': id_metric, 'best_metric': 0.0,
-                  'tau': 0.0, 'decay': 0.0}
-
-    for dico in list_dic:
-        list_tau.append(dico['tau'])
-        list_decay.append(dico['decay'])
-
-        # Check for the best reconstructed image in the list of dicts,
-        # and its associated params.
-        if (image and (dico['mean_'+list_metric_names[id_metric]] >
-                       best_image['best_metric'])):
-
-            best_image['best_metric'] = dico['mean_' +
-                                             list_metric_names[id_metric]]
-            best_image['tau'] = dico['tau']
-            best_image['decay'] = dico['decay']
-            best_image['data'] = dico['img_recons']
-
-        stat_bool = True
-        for j in range(len(list_metric_names)):
-            res_metrics[j].append(dico['mean_'+list_metric_names[j]])
-            try:
-                std_metrics[j].append(dico['std_'+list_metric_names[j]])
-                min_metrics[j].append(dico['min_'+list_metric_names[j]])
-                max_metrics[j].append(dico['max_'+list_metric_names[j]])
-            except:
-                stat_bool = False
-                pass
-
-    if not stat_bool:
-        print('No metrics statistics availables')
-        res_metrics = [res_metrics]
-    else:
-        res_metrics = [res_metrics, std_metrics, min_metrics, max_metrics]
-
-    if not image:
-        return list_tau, list_decay, res_metrics
-    else:
-        return list_tau, list_decay, res_metrics, best_image
 
 
 #############################################################################
@@ -109,27 +56,27 @@ directory = '/volatile/bsarthou/datas/sparkling/stat_sparkling_'
 #             '250.0_2018616_1655.npy']
 #
 # # All available
-path_res = ['1e-08_201869_031.npy',
-            '1e-07_201869_30.npy',
-            '1e-06_201869_1115.npy',
-            '1e-05_201869_1936.npy',
-            '0.0001_2018610_417.npy',
-            '0.1_2018613_950.npy',
-            '0.0_2018613_135.npy',
-            '10.0_2018614_142.npy',
-            '100.0_2018616_154.npy',
-            '200.0_2018616_945.npy',
-            '250.0_2018616_1655.npy',
-            '300.0_2018616_2344.npy',
-            '500.0_2018617_69.npy',
-            '1000.0_2018617_1336.npy',
-            '2000.0_2018617_2154.npy']
+# path_res = ['1e-08_201869_031.npy',
+#             '1e-07_201869_30.npy',
+#             '1e-06_201869_1115.npy',
+#             '1e-05_201869_1936.npy',
+#             '0.0001_2018610_417.npy',
+#             '0.1_2018613_950.npy',
+#             '0.0_2018613_135.npy',
+#             '10.0_2018614_142.npy',
+#             '100.0_2018616_154.npy',
+#             '200.0_2018616_945.npy',
+#             '250.0_2018616_1655.npy',
+#             '300.0_2018616_2344.npy',
+#             '500.0_2018617_69.npy',
+#             '1000.0_2018617_1336.npy',
+#             '2000.0_2018617_2154.npy']
 
 # # Example for slides
-# path_res = ['1e-08_201869_031.npy',
-#             '0.0_2018613_135.npy',
-#             '100.0_2018616_154.npy',
-#             '1000.0_2018617_1336.npy']
+path_res = ['1e-08_201869_031.npy',
+            '0.0_2018613_135.npy',
+            '100.0_2018616_154.npy',
+            '1000.0_2018617_1336.npy']
 
 
 nb_lambdas = len(path_res)
@@ -344,7 +291,7 @@ if IMAGES:
                     best_image['best_metric']))
 # plt.show()
 #############################################################################
-# LAMBDA, TAU OR LAMDA, DECAY FIXED
+# LAMBDA, TAU OR LAMBDA, DECAY FIXED
 # ---------------------------------
 #
 # For each lambda, plota metric along tau or decay, with decay or tau
@@ -444,8 +391,12 @@ if T_D_FIXED_FOR_L:
 # TAU, DECAY FIXED
 # ----------------
 #
-# For each lambda, plota metric along tau or decay, with decay or tau
-# associated fixed (it's a 2D projection of the surfaces seen before)
-# if L_FIXED_FOR_T_D:
+# For a fixed couple (tau, decay), plot metric along lambda
 
+# ssim_for_l = []
+#
+# if L_FIXED_FOR_T_D:
+#     for i in range(nb_lambdas):
+#
+#
 plt.show()

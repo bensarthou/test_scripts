@@ -115,12 +115,12 @@ samples_dirpath = '/volatile/bsarthou/datas/sparkling/samples_sparkling_/' + \
 samples_paths = []
 # base_dir = '2018-Jun-06_N384_nc24_ns3072_Dt0.01ms_OS1_decim1_'
 
-base_dir = '2018-Jun-28_N384_nc24_ns3072_Dt0.01ms_OS1_decim1_'
+base_dir = '2018-Jul-06_N384_nc24_ns3072_Dt0.01ms_OS1_decim1_'
 
 list_res = []
 
-decays = [3, 4, 5, 6, 7]
-taus = [0.5, 0.7, 0.9, 1, 1.2]
+decays = [1, 1.75, 2.5, 3.25, 4]
+taus = [0.1, 0.2, 0.3, 0.4, 0.5]
 
 # decays = [1.75, 2.5]
 # taus = [0.7, 0.9]

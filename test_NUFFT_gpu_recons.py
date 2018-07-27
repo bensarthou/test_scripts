@@ -27,7 +27,7 @@ from pysap.plugins.mri.parallel_mri.reconstruct import sparse_rec_fista
 from pysap.plugins.mri.parallel_mri.reconstruct import sparse_rec_condatvu
 from pysap.plugins.mri.reconstruct_3D.utils import convert_mask_to_locations_3D
 from pysap.plugins.mri.reconstruct_3D.utils import convert_locations_to_mask_3D
-from modopt.math.metrics import ssim
+from modopt.math.metrics import ssim, psnr
 
 # Third party import
 import numpy as np
@@ -67,8 +67,8 @@ samples = normalize_samples(samples)
 # We then reconstruct the zero order solution.
 
 # Generate the subsampled kspace
-# fourier_op_gen = NFFT3(samples=samples, shape=Iref.shape)
-fourier_op_gen = NUFFT(samples=samples, shape=Iref.shape, platform='cpu')
+fourier_op_gen = NFFT3(samples=samples, shape=Iref.shape)
+# fourier_op_gen = NUFFT(samples=samples, shape=Iref.shape, platform='cpu')
 # fourier_op_gen = FFT3(samples=samples, shape=Iref.shape)
 
 kspace_data = fourier_op_gen.op(Iref)
@@ -76,22 +76,20 @@ kspace_data = fourier_op_gen.op(Iref)
 # Zero order solution
 image_rec0 = fourier_op_gen.adj_op(kspace_data)
 imshow3D(np.abs(image_rec0), display=True)
-print('nb fourier op:', fourier_op_gen.getNumInstances())
 
-max_iter = 100
+max_iter = 500
 
 linear_op = pyWavelet3(wavelet_name="sym8",
                        nb_scale=3)
 
 # linear_op = Wavelet2(
-#         nb_scale=3,
+#         nb_scale=2,
 #         wavelet_name='ATrou3D')
 
-# fourier_op = NFFT3(samples=samples, shape=Iref.shape)
-fourier_op = NUFFT(samples=samples, shape=Iref.shape, platform='gpu')
+fourier_op = NFFT3(samples=samples, shape=Iref.shape)
+# fourier_op = NUFFT(samples=samples, shape=Iref.shape, platform='gpu')
 # fourier_op = FFT3(samples=samples, shape=Iref.shape)
-print('nb fourier op:', fourier_op.getNumInstances())
-imshow3D(np.abs(fourier_op.adj_op(kspace_data)), display=True)
+
 print('Starting Lipschitz constant computation')
 
 gradient_op = Gradient_pMRI(data=kspace_data,
@@ -116,33 +114,36 @@ imshow3D(np.abs(x_final), display=True)
 # plt.plot(cost)
 # plt.show()
 
-# np.save('/volatile/bsarthou/datas/NUFFT/save_baboon_128_NUFFT_cubic_GPU.npy', x_final)
+np.save('/volatile/bsarthou/datas/save_baboon_128_NUFFT_cubic_GPU_sp3d.npy', x_final)
 print('FISTA Mu:{} SSIM: {}'.format(mu, ssim(mat2grey(Iref), mat2grey(x_final),
                                     None)))
+print('FISTA Mu:{} PSNR: {}'.format(mu, psnr(mat2grey(Iref), mat2grey(x_final),
+                                    None)))
 
-gradient_op_cd = Gradient_pMRI(data=kspace_data,
-                               fourier_op=fourier_op)
-x_final, transform, cost = sparse_rec_condatvu(
-    gradient_op=gradient_op_cd,
-    linear_op=linear_op,
-    std_est=None,
-    std_est_method=None,
-    std_thr=2.,
-    mu=mu,
-    tau=None,
-    sigma=None,
-    relaxation_factor=1.0,
-    nb_of_reweights=0,
-    max_nb_of_iter=max_iter,
-    add_positivity=False,
-    atol=1e-4,
-    verbose=1,
-    get_cost=True)
-imshow3D(np.abs(x_final), display=True)
-plt.figure()
-plt.plot(cost)
-plt.show()
-
-print('CONDAT Mu:{} SSIM: {}'.format(mu, ssim(mat2grey(Iref),
-                                              mat2grey(x_final),
-                                     None)))
+#
+# gradient_op_cd = Gradient_pMRI(data=kspace_data,
+#                                fourier_op=fourier_op)
+# x_final, transform, cost = sparse_rec_condatvu(
+#     gradient_op=gradient_op_cd,
+#     linear_op=linear_op,
+#     std_est=None,
+#     std_est_method=None,
+#     std_thr=2.,
+#     mu=mu,
+#     tau=None,
+#     sigma=None,
+#     relaxation_factor=1.0,
+#     nb_of_reweights=0,
+#     max_nb_of_iter=max_iter,
+#     add_positivity=False,
+#     atol=1e-4,
+#     verbose=1,
+#     get_cost=True)
+# imshow3D(np.abs(x_final), display=True)
+# plt.figure()
+# plt.plot(cost)
+# plt.show()
+#
+# print('CONDAT Mu:{} SSIM: {}'.format(mu, ssim(mat2grey(Iref),
+#                                               mat2grey(x_final),
+#                                      None)))
